@@ -17,34 +17,30 @@ const (
 )
 
 type Client struct {
-	baseHeader string
 	clientHTTP *http.Client
-	baseAuth   string
 }
 
 func New() *Client {
-	return &Client{
-		baseHeader: "application/x-www-form-urlencoded",
-		clientHTTP: &http.Client{},
-		baseAuth:   "",
-	}
+	return &Client{clientHTTP: &http.Client{}}
 }
 
-func (c *Client) MakeRequest(url string, body string, method Method) (string, error) {
+func (c *Client) MakeRequest(method Method, url string, body string, headers map[string]string) (string, error) {
 	req, err := http.NewRequest(string(method), url, strings.NewReader(body))
 	if err != nil {
 		return "", err
 	}
 
-	req.Header.Set("Authorization", c.baseAuth)
-	req.Header.Set("Content-Type", c.baseHeader)
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
 
 	resp, err := c.clientHTTP.Do(req)
 	if err != nil {
 		return "", err
 	}
-
-	defer resp.Body.Close()
+	defer func(){
+		_ = resp.Body.Close()
+	}()
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -52,12 +48,4 @@ func (c *Client) MakeRequest(url string, body string, method Method) (string, er
 	}
 
 	return string(data), nil
-}
-
-func (c *Client) ChangeHeader(header string) {
-	c.baseHeader = header
-}
-
-func (c *Client) ChangeAuth(auth string) {
-	c.baseAuth = auth
 }

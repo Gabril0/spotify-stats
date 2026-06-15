@@ -1,48 +1,40 @@
 package auth
 
 import (
-	"io"
-	"net/http"
+	"encoding/json"
+	"github.com/gofiber/fiber/v3"
 	"net/url"
 	"spotify-stats/internal/httpclient"
-	"github.com/gofiber/fiber/v3"
+	"time"
 )
 
 const spotifyBaseURL = "https://accounts.spotify.com/"
 
 type Auth struct {
-	clientID string
-	clientSecret string
-	port string
-	userState string
-	userCode string
-	client *httpclient.Client
+	clientID        string
+	clientSecret    string
+	port            string
+	userState       string
+	userCode        string
+	token           string
+	tokenExpireTime time.Time
+	client          *httpclient.Client
 }
 
 func New(clientID string, clientSecret string, port string) *Auth {
-	var client *httpclient.Client = httpclient.New()
-	return &Auth{clientID: clientID, clientSecret: clientSecret, port: port, client: client}
+	return &Auth{
+		clientID:     clientID,
+		clientSecret: clientSecret,
+		port:         port,
+		client:       httpclient.New(),
+	}
 }
-
-//func SpotifyAuthWeb(c fiber.Ctx) error {
-// resp, err := http.Get(spotifyBaseURL + "authorize")
-// 	if err != nil{
-// 		return err
-// 	}
-// 	defer resp.Body.Close()
-//
-// 	body, err := io.ReadAll(resp.Body)
-// 	if err != nil{
-// 		return err
-// 	}
-// 	return c.SendString(string(body))
-// }
 
 func (a *Auth) SpotifyAuthWebRedirect(c fiber.Ctx) error {
 	params := url.Values{}
 	params.Set("client_id", a.clientID)
 	params.Set("response_type", "code")
-	params.Set("redirect_uri", "http://127.0.0.1:" + a.port + "/api/callback")
+	params.Set("redirect_uri", "http://127.0.0.1:"+a.port+"/api/callback")
 	params.Set("scope", "user-top-read user-read-recently-played")
 	params.Set("state", "spotify island auth request")
 
@@ -53,31 +45,60 @@ func (a *Auth) SpotifyAuthWebRedirect(c fiber.Ctx) error {
 
 func (a *Auth) SpotifyCallback(c fiber.Ctx) error {
 	a.userState = c.Query("state")
-	a.userCode = c.Query("code") 
+	a.userCode = c.Query("code")
 
-	if a.userCode == "" || a.userState == ""{
-		return c.SendString("Error: Not all parameters were returned, \n code:" + a.userCode + "\n state:" + a.userState)
+	if a.userCode == "" || a.userState == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Not all parameters were returned",
+			"code":  a.userCode,
+			"state": a.userState,
+		})
 	}
-	return c.SendString("Authorized successfully!! Yay ꉂ(˵˃ ᗜ ˂˵)")
+	return c.JSON(fiber.Map{"message": "Authorized successfully!! Yay ꉂ(˵˃ ᗜ ˂˵)"})
 }
 
-func (a *Auth) SpotifyGetToken(c fiber.Ctx) error {
-	var tokenURL string = spotifyBaseURL + "api/token"
-
-	resp, err := http.Get(tokenURL)
+func (a *Auth) GetToken(c fiber.Ctx) error {
+	token, err := a.ValidToken()
 	if err != nil {
-		return c.SendString(string(err.Error()))
+		return err
 	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil{
-		return c.SendString(string(err.Error()))
-	}
-	return c.SendString(string(body))
+	return c.JSON(token)
 }
 
-func (a *Auth) GetToken(){
-	a.client.MakeRequest(spotifyBaseURL + "api/token", "", http.MethodPost)
-	
+func (a *Auth) ValidToken() (string, error) {
+	if a.token != "" && time.Now().Before(a.tokenExpireTime) {
+		return a.token, nil
+	}
+
+	token, err := a.ObtainNewToken()
+	if err != nil {
+		return "", err
+	}
+
+	a.token = token.AccessToken
+	a.tokenExpireTime = time.Now().Add(time.Duration(token.ExpiresIn) * time.Second)
+	return a.token, nil
+}
+
+func (a *Auth) ObtainNewToken() (TokenResponse, error) {
+	body := url.Values{}
+	body.Set("grant_type", "authorization_code")
+	body.Set("code", a.userCode)
+	body.Set("redirect_uri", "http://127.0.0.1:"+a.port+"/api/callback")
+	body.Set("client_id", a.clientID)
+	body.Set("client_secret", a.clientSecret)
+
+	headers := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
+
+	resp, err := a.client.MakeRequest(httpclient.POST, spotifyBaseURL+"api/token", body.Encode(), headers)
+	if err != nil {
+		return TokenResponse{}, err
+	}
+
+	var token TokenResponse
+	err = json.Unmarshal([]byte(resp), &token)
+	if err != nil {
+		return TokenResponse{}, err
+	}
+	return token, nil
 }
