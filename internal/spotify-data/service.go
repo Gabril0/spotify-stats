@@ -2,7 +2,6 @@ package spotifydata
 
 import (
 	"encoding/json"
-	"github.com/gofiber/fiber/v3"
 	"net/url"
 	"spotify-stats/internal/auth"
 	"spotify-stats/internal/httpclient"
@@ -20,18 +19,18 @@ const (
 
 const defaultLimit = "20"
 
-type SpotifyData struct {
+type Service struct {
 	auth             *auth.Auth
 	client           *httpclient.Client
 	defaultTimeRange TimeRange
 	defaultLimit     string
 }
 
-func New(a *auth.Auth) *SpotifyData {
-	return &SpotifyData{auth: a, client: httpclient.New(), defaultTimeRange: MediumTerm, defaultLimit: defaultLimit}
+func NewService(a *auth.Auth) *Service {
+	return &Service{auth: a, client: httpclient.New(), defaultTimeRange: MediumTerm, defaultLimit: defaultLimit}
 }
 
-func (s *SpotifyData) QuickGet(path string) (string, error) {
+func (s *Service) QuickGet(path string) (string, error) {
 	token, err := s.auth.ValidToken()
 	if err != nil {
 		return "", err
@@ -42,12 +41,7 @@ func (s *SpotifyData) QuickGet(path string) (string, error) {
 	return s.client.MakeRequest(httpclient.GET, spotifyAPIBaseURL+path, "", headers)
 }
 
-func (s *SpotifyData) topQuery(c fiber.Ctx) (string, error) {
-	opts := TopOptions{}
-	if err := c.Bind().Body(&opts); err != nil {
-		return "", err
-	}
-
+func (s *Service) topQuery(opts TopOptions) string {
 	if opts.TimeRange == "" {
 		opts.TimeRange = s.defaultTimeRange
 	}
@@ -58,86 +52,72 @@ func (s *SpotifyData) topQuery(c fiber.Ctx) (string, error) {
 	params := url.Values{}
 	params.Set("time_range", string(opts.TimeRange))
 	params.Set("limit", opts.Limit)
-	return "?" + params.Encode(), nil
+	return "?" + params.Encode()
 }
 
-func (s *SpotifyData) GetUserInfo(c fiber.Ctx) error {
+func (s *Service) FetchUserProfile() (UserProfile, error) {
 	resp, err := s.QuickGet("me")
 	if err != nil {
-		return err
+		return UserProfile{}, err
 	}
 
 	var profile UserProfile
 	err = json.Unmarshal([]byte(resp), &profile)
 	if err != nil {
-		return err
+		return UserProfile{}, err
 	}
 
-	return c.JSON(profile)
+	return profile, nil
 }
 
-func (s *SpotifyData) GetTopArtists(c fiber.Ctx) error {
-	query, err := s.topQuery(c)
+func (s *Service) FetchTopArtists(opts TopOptions) (TopArtistsResponse, error) {
+	resp, err := s.QuickGet("me/top/artists" + s.topQuery(opts))
 	if err != nil {
-		return err
-	}
-
-	resp, err := s.QuickGet("me/top/artists" + query)
-	if err != nil {
-		return err
+		return TopArtistsResponse{}, err
 	}
 
 	var artists TopArtistsResponse
 	err = json.Unmarshal([]byte(resp), &artists)
 	if err != nil {
-		return err
+		return TopArtistsResponse{}, err
 	}
 
-	return c.JSON(artists)
+	return artists, nil
 }
 
-func (s *SpotifyData) GetTopTracks(c fiber.Ctx) error {
-	query, err := s.topQuery(c)
+func (s *Service) FetchTopTracks(opts TopOptions) (TopTracksResponse, error) {
+	resp, err := s.QuickGet("me/top/tracks" + s.topQuery(opts))
 	if err != nil {
-		return err
-	}
-
-	resp, err := s.QuickGet("me/top/tracks" + query)
-	if err != nil {
-		return err
+		return TopTracksResponse{}, err
 	}
 
 	var tracks TopTracksResponse
 	err = json.Unmarshal([]byte(resp), &tracks)
 	if err != nil {
-		return err
+		return TopTracksResponse{}, err
 	}
 
-	return c.JSON(tracks)
+	return tracks, nil
 }
 
-func (s *SpotifyData) GetRecentlyPlayed(c fiber.Ctx) error {
-	opts := TopOptions{}
-	if err := c.Bind().Body(&opts); err != nil {
-		return err
-	}
-	if opts.Limit == "" {
-		opts.Limit = s.defaultLimit
+func (s *Service) FetchRecentlyPlayed(limit string) (RecentlyPlayedResponse, error) {
+	if limit == "" {
+		limit = s.defaultLimit
 	}
 
 	params := url.Values{}
-	params.Set("limit", opts.Limit)
+	params.Set("limit", limit)
 
 	resp, err := s.QuickGet("me/player/recently-played?" + params.Encode())
 	if err != nil {
-		return err
+		return RecentlyPlayedResponse{}, err
 	}
 
 	var recent RecentlyPlayedResponse
 	err = json.Unmarshal([]byte(resp), &recent)
 	if err != nil {
-		return err
+		return RecentlyPlayedResponse{}, err
 	}
 
-	return c.JSON(recent)
+	return recent, nil
 }

@@ -22,14 +22,15 @@ func main() {
 	clientSecret := os.Getenv("CLIENT_SECRET")
 
 	a := auth.New(clientID, clientSecret, port)
-	data := spotifydata.New(a)
+	dataService := spotifydata.NewService(a)
+	dataHandler := spotifydata.NewHandler(dataService)
 
 	app.Get("/api/callback", a.SpotifyCallback)
 	app.Get("/api/web-auth", a.SpotifyAuthWebRedirect)
 	app.Get("/api/token", a.GetToken)
-	app.Get("/api/me", data.GetUserInfo)
-	app.Get("/api/top/artists", data.GetTopArtists)
-	app.Get("/api/top/tracks", data.GetTopTracks)
-	app.Get("/api/recently-played", data.GetRecentlyPlayed)
+	app.Get("/api/me", dataHandler.GetUserInfo)
+	app.Get("/api/top/artists", dataHandler.GetTopArtists)
+	app.Get("/api/top/tracks", dataHandler.GetTopTracks)
+	app.Get("/api/recently-played", dataHandler.GetRecentlyPlayed)
 	log.Fatal(app.Listen(":" + port))
 }

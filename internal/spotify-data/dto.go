@@ -17,9 +17,11 @@ type UserProfile struct {
 	Email       string  `json:"email"`
 	Country     string  `json:"country"`
 	Images      []Image `json:"images"`
-	Followers   struct {
-		Total int `json:"total"`
-	} `json:"followers"`
+	Followers   Follower `json:"followers"`
+}
+
+type Follower struct {
+	Total int `json:"total"`
 }
 
 type Artist struct {
@@ -39,12 +41,12 @@ type Track struct {
 	Name       string   `json:"name"`
 	ID         string   `json:"id"`
 	Popularity int      `json:"popularity"`
-	Album      Album    `json:"album"`
-	Artists    []Artist `json:"artists"`
-}
+	Album      Album    `json:"album"` 
+	Artists    []Artist `json:"artists"` 
+} 
 
-type TopArtistsResponse struct {
-	Items []Artist `json:"items"`
+type TopArtistsResponse struct { 
+	Items []Artist `json:"items"` 
 }
 
 type TopTracksResponse struct {
@@ -52,8 +54,10 @@ type TopTracksResponse struct {
 }
 
 type RecentlyPlayedResponse struct {
-	Items []struct {
-		Track    Track  `json:"track"`
-		PlayedAt string `json:"played_at"`
-	} `json:"items"`
+	Items []Item `json:"items"`
+}
+
+type Item struct {
+	Track    Track  `json:"track"`
+	PlayedAt string `json:"played_at"`
 }
