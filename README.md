@@ -35,6 +35,7 @@ internal/auth         Spotify OAuth flow and token management
 internal/spotify-data Spotify API client (profile, top artists/tracks, recent, saved tracks)
 internal/stats        derived listening stats (taste evolution, listening patterns, album colors)
 internal/httpclient   small wrapper around net/http
+docs                  generated Swagger/OpenAPI spec (swag init)
 ```
 
 ## Prerequisites
@@ -72,6 +73,23 @@ internal/httpclient   small wrapper around net/http
    ```bash
    make run
    ```
+
+## API documentation (Swagger)
+
+Once the server is running, browse the interactive Swagger UI at:
+
+```
+http://127.0.0.1:{PORT}/swagger/index.html
+```
+
+The OpenAPI spec is generated from code annotations using [swaggo](https://github.com/swaggo/swag)
+and served via [gofiber/contrib/swaggo](https://github.com/gofiber/contrib/tree/main/v3/swaggo).
+If you add or change endpoints, regenerate the docs with:
+
+```bash
+go install github.com/swaggo/swag/cmd/swag@latest
+make swagger
+```
 
 ## Authentication flow
 
