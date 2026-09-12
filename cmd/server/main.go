@@ -6,7 +6,8 @@ import (
 	"log"
 	"os"
 	"spotify-stats/internal/auth"
-	"spotify-stats/internal/spotify-data"
+	spotifydata "spotify-stats/internal/spotify-data"
+	"spotify-stats/internal/stats"
 )
 
 func main() {
@@ -24,6 +25,8 @@ func main() {
 	a := auth.New(clientID, clientSecret, port)
 	dataService := spotifydata.NewService(a)
 	dataHandler := spotifydata.NewHandler(dataService)
+	statsService := stats.NewService(dataService)
+	statsHandler := stats.NewHandler(statsService)
 
 	app.Get("/api/callback", a.SpotifyCallback)
 	app.Get("/api/web-auth", a.SpotifyAuthWebRedirect)
@@ -32,5 +35,9 @@ func main() {
 	app.Get("/api/top/artists", dataHandler.GetTopArtists)
 	app.Get("/api/top/tracks", dataHandler.GetTopTracks)
 	app.Get("/api/recently-played", dataHandler.GetRecentlyPlayed)
+	app.Get("/api/saved-tracks", dataHandler.GetSavedTracks)
+	app.Get("/api/stats/taste-evolution", statsHandler.GetTasteEvolution)
+	app.Get("/api/stats/listening-patterns", statsHandler.GetListeningPatterns)
+	app.Get("/api/stats/album-colors", statsHandler.GetAlbumColors)
 	log.Fatal(app.Listen(":" + port))
 }

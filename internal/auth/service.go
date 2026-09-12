@@ -35,7 +35,7 @@ func (a *Auth) SpotifyAuthWebRedirect(c fiber.Ctx) error {
 	params.Set("client_id", a.clientID)
 	params.Set("response_type", "code")
 	params.Set("redirect_uri", "http://127.0.0.1:"+a.port+"/api/callback")
-	params.Set("scope", "user-top-read user-read-recently-played")
+	params.Set("scope", "user-top-read user-read-recently-played user-library-read")
 	params.Set("state", "spotify island auth request")
 
 	loginURL := spotifyBaseURL + "authorize?" + params.Encode()
