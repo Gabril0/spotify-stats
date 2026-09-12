@@ -21,7 +21,7 @@ func (h *Handler) GetUserInfo(c fiber.Ctx) error {
 
 func (h *Handler) GetTopArtists(c fiber.Ctx) error {
 	opts := TopOptions{}
-	err := c.Bind().Body(&opts)
+	err := c.Bind().Query(&opts)
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (h *Handler) GetTopArtists(c fiber.Ctx) error {
 
 func (h *Handler) GetTopTracks(c fiber.Ctx) error {
 	opts := TopOptions{}
-	err := c.Bind().Body(&opts)
+	err := c.Bind().Query(&opts)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (h *Handler) GetTopTracks(c fiber.Ctx) error {
 
 func (h *Handler) GetRecentlyPlayed(c fiber.Ctx) error {
 	opts := TopOptions{}
-	err := c.Bind().Body(&opts)
+	err := c.Bind().Query(&opts)
 	if err != nil {
 		return err
 	}
@@ -62,4 +62,19 @@ func (h *Handler) GetRecentlyPlayed(c fiber.Ctx) error {
 	}
 
 	return c.JSON(recent)
+}
+
+func (h *Handler) GetSavedTracks(c fiber.Ctx) error {
+	opts := TopOptions{}
+	err := c.Bind().Query(&opts)
+	if err != nil {
+		return err
+	}
+
+	saved, err := h.service.FetchSavedTracks(opts.Limit)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(saved)
 }
