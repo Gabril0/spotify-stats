@@ -30,6 +30,12 @@ func New(clientID string, clientSecret string, port string) *Auth {
 	}
 }
 
+// SpotifyAuthWebRedirect godoc
+// @Summary Get the Spotify login/authorize URL
+// @Tags auth
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Router /api/web-auth [get]
 func (a *Auth) SpotifyAuthWebRedirect(c fiber.Ctx) error {
 	params := url.Values{}
 	params.Set("client_id", a.clientID)
@@ -43,6 +49,14 @@ func (a *Auth) SpotifyAuthWebRedirect(c fiber.Ctx) error {
 	return c.JSON(fiber.Map{"url": loginURL})
 }
 
+// SpotifyCallback godoc
+// @Summary OAuth redirect target used by Spotify
+// @Tags auth
+// @Produce json
+// @Param code query string false "Authorization code"
+// @Param state query string false "State parameter"
+// @Success 200 {object} map[string]string
+// @Router /api/callback [get]
 func (a *Auth) SpotifyCallback(c fiber.Ctx) error {
 	a.userState = c.Query("state")
 	a.userCode = c.Query("code")
@@ -57,6 +71,12 @@ func (a *Auth) SpotifyCallback(c fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Authorized successfully!! Yay ꉂ(˵˃ ᗜ ˂˵)"})
 }
 
+// GetToken godoc
+// @Summary Get a valid (cached or refreshed) access token
+// @Tags auth
+// @Produce json
+// @Success 200 {string} string
+// @Router /api/token [get]
 func (a *Auth) GetToken(c fiber.Ctx) error {
 	token, err := a.ValidToken()
 	if err != nil {
