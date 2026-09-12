@@ -8,8 +8,16 @@ import (
 	"spotify-stats/internal/auth"
 	spotifydata "spotify-stats/internal/spotify-data"
 	"spotify-stats/internal/stats"
+
+	swaggo "github.com/gofiber/contrib/v3/swaggo"
+
+	_ "spotify-stats/docs"
 )
 
+// @title spotify-stats API
+// @version 1.0
+// @description Go backend that authenticates with the Spotify Web API and exposes derived listening stats.
+// @BasePath /
 func main() {
 	app := fiber.New()
 	err := godotenv.Load()
@@ -39,5 +47,6 @@ func main() {
 	app.Get("/api/stats/taste-evolution", statsHandler.GetTasteEvolution)
 	app.Get("/api/stats/listening-patterns", statsHandler.GetListeningPatterns)
 	app.Get("/api/stats/album-colors", statsHandler.GetAlbumColors)
+	app.Get("/swagger/*", swaggo.HandlerDefault)
 	log.Fatal(app.Listen(":" + port))
 }

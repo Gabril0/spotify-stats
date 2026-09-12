@@ -1,0 +1,367 @@
+basePath: /
+definitions:
+  spotifydata.Album:
+    properties:
+      id:
+        type: string
+      images:
+        items:
+          $ref: '#/definitions/spotifydata.Image'
+        type: array
+      name:
+        type: string
+    type: object
+  spotifydata.Artist:
+    properties:
+      id:
+        type: string
+      images:
+        items:
+          $ref: '#/definitions/spotifydata.Image'
+        type: array
+      name:
+        type: string
+    type: object
+  spotifydata.Follower:
+    properties:
+      total:
+        type: integer
+    type: object
+  spotifydata.Image:
+    properties:
+      height:
+        type: integer
+      url:
+        type: string
+      width:
+        type: integer
+    type: object
+  spotifydata.Item:
+    properties:
+      played_at:
+        type: string
+      track:
+        $ref: '#/definitions/spotifydata.Track'
+    type: object
+  spotifydata.RecentlyPlayedResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/spotifydata.Item'
+        type: array
+    type: object
+  spotifydata.SavedTrackItem:
+    properties:
+      added_at:
+        type: string
+      track:
+        $ref: '#/definitions/spotifydata.Track'
+    type: object
+  spotifydata.SavedTracksResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/spotifydata.SavedTrackItem'
+        type: array
+    type: object
+  spotifydata.TimeRange:
+    enum:
+    - short_term
+    - medium_term
+    - long_term
+    type: string
+    x-enum-varnames:
+    - ShortTerm
+    - MediumTerm
+    - LongTerm
+  spotifydata.TopArtistsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/spotifydata.Artist'
+        type: array
+    type: object
+  spotifydata.TopTracksResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/spotifydata.Track'
+        type: array
+    type: object
+  spotifydata.Track:
+    properties:
+      album:
+        $ref: '#/definitions/spotifydata.Album'
+      artists:
+        items:
+          $ref: '#/definitions/spotifydata.Artist'
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  spotifydata.UserProfile:
+    properties:
+      country:
+        type: string
+      display_name:
+        type: string
+      email:
+        type: string
+      followers:
+        $ref: '#/definitions/spotifydata.Follower'
+      id:
+        type: string
+      images:
+        items:
+          $ref: '#/definitions/spotifydata.Image'
+        type: array
+    type: object
+  stats.AlbumColor:
+    properties:
+      album_name:
+        type: string
+      hex_color:
+        type: string
+      image_url:
+        type: string
+    type: object
+  stats.AlbumColorsResponse:
+    properties:
+      colors:
+        items:
+          $ref: '#/definitions/stats.AlbumColor'
+        type: array
+    type: object
+  stats.ListeningPatternsResponse:
+    properties:
+      busiest_day:
+        type: string
+      busiest_hour:
+        type: integer
+      day_of_week_histogram:
+        additionalProperties:
+          type: integer
+        type: object
+      hour_of_day_histogram:
+        items:
+          type: integer
+        type: array
+      sample_size:
+        type: integer
+    type: object
+  stats.TasteEvolutionComparison:
+    properties:
+      artist_overlap_percent:
+        type: number
+      from:
+        $ref: '#/definitions/spotifydata.TimeRange'
+      new_artists_in_to_range:
+        items:
+          type: string
+        type: array
+      to:
+        $ref: '#/definitions/spotifydata.TimeRange'
+      track_overlap_percent:
+        type: number
+    type: object
+  stats.TasteEvolutionResponse:
+    properties:
+      long_to_medium:
+        $ref: '#/definitions/stats.TasteEvolutionComparison'
+      long_to_short:
+        $ref: '#/definitions/stats.TasteEvolutionComparison'
+      medium_to_short:
+        $ref: '#/definitions/stats.TasteEvolutionComparison'
+    type: object
+info:
+  contact: {}
+  description: Go backend that authenticates with the Spotify Web API and exposes
+    derived listening stats.
+  title: spotify-stats API
+  version: "1.0"
+paths:
+  /api/callback:
+    get:
+      parameters:
+      - description: Authorization code
+        in: query
+        name: code
+        type: string
+      - description: State parameter
+        in: query
+        name: state
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: OAuth redirect target used by Spotify
+      tags:
+      - auth
+  /api/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/spotifydata.UserProfile'
+      summary: Get current user's Spotify profile
+      tags:
+      - data
+  /api/recently-played:
+    get:
+      parameters:
+      - description: Number of items to return
+        in: query
+        name: limit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/spotifydata.RecentlyPlayedResponse'
+      summary: Get the user's recently played tracks
+      tags:
+      - data
+  /api/saved-tracks:
+    get:
+      parameters:
+      - description: Number of items to return
+        in: query
+        name: limit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/spotifydata.SavedTracksResponse'
+      summary: Get the user's saved (liked) tracks
+      tags:
+      - data
+  /api/stats/album-colors:
+    get:
+      parameters:
+      - description: short_term, medium_term, or long_term
+        in: query
+        name: time_range
+        type: string
+      - description: Number of items to return
+        in: query
+        name: limit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/stats.AlbumColorsResponse'
+      summary: Get the average color of each top track's album artwork
+      tags:
+      - stats
+  /api/stats/listening-patterns:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/stats.ListeningPatternsResponse'
+      summary: Get hour-of-day and day-of-week listening histograms
+      tags:
+      - stats
+  /api/stats/taste-evolution:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/stats.TasteEvolutionResponse'
+      summary: Compare top artists/tracks across time ranges
+      tags:
+      - stats
+  /api/token:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Get a valid (cached or refreshed) access token
+      tags:
+      - auth
+  /api/top/artists:
+    get:
+      parameters:
+      - description: short_term, medium_term, or long_term
+        in: query
+        name: time_range
+        type: string
+      - description: Number of items to return
+        in: query
+        name: limit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/spotifydata.TopArtistsResponse'
+      summary: Get the user's top artists
+      tags:
+      - data
+  /api/top/tracks:
+    get:
+      parameters:
+      - description: short_term, medium_term, or long_term
+        in: query
+        name: time_range
+        type: string
+      - description: Number of items to return
+        in: query
+        name: limit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/spotifydata.TopTracksResponse'
+      summary: Get the user's top tracks
+      tags:
+      - data
+  /api/web-auth:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get the Spotify login/authorize URL
+      tags:
+      - auth
+swagger: "2.0"

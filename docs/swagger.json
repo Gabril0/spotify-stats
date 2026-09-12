@@ -1,0 +1,570 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Go backend that authenticates with the Spotify Web API and exposes derived listening stats.",
+        "title": "spotify-stats API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {
+        "/api/callback": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "OAuth redirect target used by Spotify",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization code",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "State parameter",
+                        "name": "state",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/me": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data"
+                ],
+                "summary": "Get current user's Spotify profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/spotifydata.UserProfile"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/recently-played": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data"
+                ],
+                "summary": "Get the user's recently played tracks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Number of items to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/spotifydata.RecentlyPlayedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/saved-tracks": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data"
+                ],
+                "summary": "Get the user's saved (liked) tracks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Number of items to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/spotifydata.SavedTracksResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/stats/album-colors": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stats"
+                ],
+                "summary": "Get the average color of each top track's album artwork",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "short_term, medium_term, or long_term",
+                        "name": "time_range",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Number of items to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/stats.AlbumColorsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/stats/listening-patterns": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stats"
+                ],
+                "summary": "Get hour-of-day and day-of-week listening histograms",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/stats.ListeningPatternsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/stats/taste-evolution": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stats"
+                ],
+                "summary": "Compare top artists/tracks across time ranges",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/stats.TasteEvolutionResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/token": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get a valid (cached or refreshed) access token",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/top/artists": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data"
+                ],
+                "summary": "Get the user's top artists",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "short_term, medium_term, or long_term",
+                        "name": "time_range",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Number of items to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/spotifydata.TopArtistsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/top/tracks": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data"
+                ],
+                "summary": "Get the user's top tracks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "short_term, medium_term, or long_term",
+                        "name": "time_range",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Number of items to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/spotifydata.TopTracksResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/web-auth": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get the Spotify login/authorize URL",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "spotifydata.Album": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/spotifydata.Image"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "spotifydata.Artist": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/spotifydata.Image"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "spotifydata.Follower": {
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "spotifydata.Image": {
+            "type": "object",
+            "properties": {
+                "height": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "integer"
+                }
+            }
+        },
+        "spotifydata.Item": {
+            "type": "object",
+            "properties": {
+                "played_at": {
+                    "type": "string"
+                },
+                "track": {
+                    "$ref": "#/definitions/spotifydata.Track"
+                }
+            }
+        },
+        "spotifydata.RecentlyPlayedResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/spotifydata.Item"
+                    }
+                }
+            }
+        },
+        "spotifydata.SavedTrackItem": {
+            "type": "object",
+            "properties": {
+                "added_at": {
+                    "type": "string"
+                },
+                "track": {
+                    "$ref": "#/definitions/spotifydata.Track"
+                }
+            }
+        },
+        "spotifydata.SavedTracksResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/spotifydata.SavedTrackItem"
+                    }
+                }
+            }
+        },
+        "spotifydata.TimeRange": {
+            "type": "string",
+            "enum": [
+                "short_term",
+                "medium_term",
+                "long_term"
+            ],
+            "x-enum-varnames": [
+                "ShortTerm",
+                "MediumTerm",
+                "LongTerm"
+            ]
+        },
+        "spotifydata.TopArtistsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/spotifydata.Artist"
+                    }
+                }
+            }
+        },
+        "spotifydata.TopTracksResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/spotifydata.Track"
+                    }
+                }
+            }
+        },
+        "spotifydata.Track": {
+            "type": "object",
+            "properties": {
+                "album": {
+                    "$ref": "#/definitions/spotifydata.Album"
+                },
+                "artists": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/spotifydata.Artist"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "spotifydata.UserProfile": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "followers": {
+                    "$ref": "#/definitions/spotifydata.Follower"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/spotifydata.Image"
+                    }
+                }
+            }
+        },
+        "stats.AlbumColor": {
+            "type": "object",
+            "properties": {
+                "album_name": {
+                    "type": "string"
+                },
+                "hex_color": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "stats.AlbumColorsResponse": {
+            "type": "object",
+            "properties": {
+                "colors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/stats.AlbumColor"
+                    }
+                }
+            }
+        },
+        "stats.ListeningPatternsResponse": {
+            "type": "object",
+            "properties": {
+                "busiest_day": {
+                    "type": "string"
+                },
+                "busiest_hour": {
+                    "type": "integer"
+                },
+                "day_of_week_histogram": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "hour_of_day_histogram": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "sample_size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "stats.TasteEvolutionComparison": {
+            "type": "object",
+            "properties": {
+                "artist_overlap_percent": {
+                    "type": "number"
+                },
+                "from": {
+                    "$ref": "#/definitions/spotifydata.TimeRange"
+                },
+                "new_artists_in_to_range": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "to": {
+                    "$ref": "#/definitions/spotifydata.TimeRange"
+                },
+                "track_overlap_percent": {
+                    "type": "number"
+                }
+            }
+        },
+        "stats.TasteEvolutionResponse": {
+            "type": "object",
+            "properties": {
+                "long_to_medium": {
+                    "$ref": "#/definitions/stats.TasteEvolutionComparison"
+                },
+                "long_to_short": {
+                    "$ref": "#/definitions/stats.TasteEvolutionComparison"
+                },
+                "medium_to_short": {
+                    "$ref": "#/definitions/stats.TasteEvolutionComparison"
+                }
+            }
+        }
+    }
+}
