@@ -121,3 +121,25 @@ func (s *Service) FetchRecentlyPlayed(limit string) (RecentlyPlayedResponse, err
 
 	return recent, nil
 }
+
+func (s *Service) FetchSavedTracks(limit string) (SavedTracksResponse, error) {
+	if limit == "" {
+		limit = s.defaultLimit
+	}
+
+	params := url.Values{}
+	params.Set("limit", limit)
+
+	resp, err := s.QuickGet("me/tracks?" + params.Encode())
+	if err != nil {
+		return SavedTracksResponse{}, err
+	}
+
+	var saved SavedTracksResponse
+	err = json.Unmarshal([]byte(resp), &saved)
+	if err != nil {
+		return SavedTracksResponse{}, err
+	}
+
+	return saved, nil
+}

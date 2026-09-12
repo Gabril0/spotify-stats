@@ -12,11 +12,11 @@ type Image struct {
 }
 
 type UserProfile struct {
-	DisplayName string  `json:"display_name"`
-	ID          string  `json:"id"`
-	Email       string  `json:"email"`
-	Country     string  `json:"country"`
-	Images      []Image `json:"images"`
+	DisplayName string   `json:"display_name"`
+	ID          string   `json:"id"`
+	Email       string   `json:"email"`
+	Country     string   `json:"country"`
+	Images      []Image  `json:"images"`
 	Followers   Follower `json:"followers"`
 }
 
@@ -25,28 +25,26 @@ type Follower struct {
 }
 
 type Artist struct {
-	Name       string   `json:"name"`
-	ID         string   `json:"id"`
-	Genres     []string `json:"genres"`
-	Popularity int      `json:"popularity"`
-	Images     []Image  `json:"images"`
+	Name   string  `json:"name"`
+	ID     string  `json:"id"`
+	Images []Image `json:"images"`
 }
 
 type Album struct {
+	ID     string  `json:"id"`
 	Name   string  `json:"name"`
 	Images []Image `json:"images"`
 }
 
 type Track struct {
-	Name       string   `json:"name"`
-	ID         string   `json:"id"`
-	Popularity int      `json:"popularity"`
-	Album      Album    `json:"album"` 
-	Artists    []Artist `json:"artists"` 
-} 
+	Name    string   `json:"name"`
+	ID      string   `json:"id"`
+	Album   Album    `json:"album"`
+	Artists []Artist `json:"artists"`
+}
 
-type TopArtistsResponse struct { 
-	Items []Artist `json:"items"` 
+type TopArtistsResponse struct {
+	Items []Artist `json:"items"`
 }
 
 type TopTracksResponse struct {
@@ -60,4 +58,13 @@ type RecentlyPlayedResponse struct {
 type Item struct {
 	Track    Track  `json:"track"`
 	PlayedAt string `json:"played_at"`
+}
+
+type SavedTrackItem struct {
+	AddedAt string `json:"added_at"`
+	Track   Track  `json:"track"`
+}
+
+type SavedTracksResponse struct {
+	Items []SavedTrackItem `json:"items"`
 }
