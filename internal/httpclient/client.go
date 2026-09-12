@@ -38,7 +38,7 @@ func (c *Client) MakeRequest(method Method, url string, body string, headers map
 	if err != nil {
 		return "", err
 	}
-	defer func(){
+	defer func() {
 		_ = resp.Body.Close()
 	}()
 
